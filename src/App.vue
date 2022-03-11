@@ -28,7 +28,7 @@
         </a>
       </div>
       <ul class="history" v-show="showHistory">
-        <li v-for="(item, index) in NavigationHistoryStack" :key="index">
+        <li v-for="(item, index) in navigationHistoryStack" :key="index">
           <span>{{ item.fileName }}</span>
 
           <span v-if="getIsCurrentHistoryNavigationItem(item)"> (当前)</span>
@@ -47,7 +47,7 @@
 
     <div class="crumbs">
       <ul>
-        <li v-for="(item, index) in NavigationStack" :key="item.id">
+        <li v-for="(item, index) in navigationStack" :key="item.id">
           {{ index > 0 ? " /" : "" }}
           <a href="javascript:void(0)" @click="navigationTo(item)">{{
             item.fileName
@@ -82,7 +82,7 @@
 import Enumerable from "linq";
 import HelloWorld from './components/HelloWorld.vue';
 
-const FileList: FileBriefWithThumbnailDto[] = [
+const FileList: FileDto[] = [
   {
     id: 1,
     parentId: null,
@@ -135,7 +135,7 @@ const FileList: FileBriefWithThumbnailDto[] = [
   },
 ];
 
-export class FileBriefWithThumbnailDto {
+export class FileDto {
   id: number;
   parentId: number;
   fileName: string;
@@ -149,10 +149,10 @@ export default {
   data: () => {
     return {
       showHistory: false,
-      listMessage: new Array<FileBriefWithThumbnailDto>(),
+      listMessage: new Array<FileDto>(),
       checkMessage: {},
-      NavigationStack: new Array<FileBriefWithThumbnailDto>(),
-      NavigationHistoryStack: new Array<FileBriefWithThumbnailDto>(),
+      navigationStack: new Array<FileDto>(),
+      navigationHistoryStack: new Array<FileDto>(),
     };
   },
 
@@ -161,14 +161,14 @@ export default {
 
     this.gotoList();
 
-    var rootFolder = new FileBriefWithThumbnailDto();
+    var rootFolder = new FileDto();
     rootFolder.fileName = "我的网盘";
-    this.NavigationStack.push(rootFolder);
+    this.navigationStack.push(rootFolder);
     this.pushNavigationHistoryStack(rootFolder);
   },
 
   methods: {
-    open(item: FileBriefWithThumbnailDto) {
+    open(item: FileDto) {
       if (item.fileType == 1) {
         this.navigationTo(item);
       } else {
@@ -185,7 +185,7 @@ export default {
       this.showHistory = !this.showHistory;
     },
 
-    toFolder(folder: FileBriefWithThumbnailDto) {
+    toFolder(folder: FileDto) {
       if ((this.checkMessage as any).parentId == folder.id) {
         return false;
       }
@@ -197,16 +197,16 @@ export default {
     },
 
     navigationBack() {
-      if (this.NavigationStack.length == 1) {
+      if (this.navigationStack.length == 1) {
         return;
       }
-      this.NavigationStack.pop();
-      var lastItem = Enumerable.from(this.NavigationStack).lastOrDefault();
+      this.navigationStack.pop();
+      var lastItem = Enumerable.from(this.navigationStack).lastOrDefault();
       if (lastItem == null) {
         return;
       }
       if (this.toFolder(lastItem)) {
-        this.NavigationHistoryStack.forEach((element) => {
+        this.navigationHistoryStack.forEach((element) => {
           element["isCurrent"] = false;
         });
         lastItem["isCurrent"] = true;
@@ -217,30 +217,30 @@ export default {
     pushNavigationHistoryStack(item) {
       var newItem = Object.assign({}, item);
 
-      if (this.NavigationHistoryStack.length > 10) {
-        this.NavigationHistoryStack.pop();
+      if (this.navigationHistoryStack.length > 10) {
+        this.navigationHistoryStack.pop();
       }
-      this.NavigationHistoryStack.unshift(newItem);
+      this.navigationHistoryStack.unshift(newItem);
     },
 
     dealWithNavigationStack(folder) {
-      var toIndex = Enumerable.from(this.NavigationStack).indexOf(
+      var toIndex = Enumerable.from(this.navigationStack).indexOf(
         (c) => c.id == folder.id
       );
       if (toIndex >= 0) {
-        this.NavigationStack.splice(
+        this.navigationStack.splice(
           toIndex + 1,
-          this.NavigationStack.length - toIndex - 1
+          this.navigationStack.length - toIndex - 1
         );
       } else {
-        this.NavigationStack.push(folder);
+        this.navigationStack.push(folder);
       }
     },
 
     navigationTo(folder) {
       this.dealWithNavigationStack(folder);
       if (this.toFolder(folder)) {
-        this.NavigationHistoryStack.forEach((element) => {
+        this.navigationHistoryStack.forEach((element) => {
           element["isCurrent"] = false;
         });
         folder["isCurrent"] = true;
@@ -249,39 +249,39 @@ export default {
     },
 
     navigationHistoryBack() {
-      var currentIndex = Enumerable.from(this.NavigationHistoryStack).indexOf(
+      var currentIndex = Enumerable.from(this.navigationHistoryStack).indexOf(
         (c) => c["isCurrent"]
       );
-      if (currentIndex < this.NavigationHistoryStack.length - 1) {
+      if (currentIndex < this.navigationHistoryStack.length - 1) {
         var forwardIndex = currentIndex + 1;
 
-        var folder = this.NavigationHistoryStack[forwardIndex];
+        var folder = this.navigationHistoryStack[forwardIndex];
         this.dealWithNavigationStack(folder);
 
         if (this.toFolder(folder)) {
-          this.NavigationHistoryStack.forEach((element) => {
+          this.navigationHistoryStack.forEach((element) => {
             element["isCurrent"] = false;
           });
-          this.NavigationHistoryStack[forwardIndex]["isCurrent"] = true;
+          this.navigationHistoryStack[forwardIndex]["isCurrent"] = true;
         }
       }
     },
 
     navigationHistoryForward() {
-      var currentIndex = Enumerable.from(this.NavigationHistoryStack).indexOf(
+      var currentIndex = Enumerable.from(this.navigationHistoryStack).indexOf(
         (c) => c["isCurrent"]
       );
       if (currentIndex > 0) {
         var forwardIndex = currentIndex - 1;
 
-        var folder = this.NavigationHistoryStack[forwardIndex];
+        var folder = this.navigationHistoryStack[forwardIndex];
         this.dealWithNavigationStack(folder);
 
         if (this.toFolder(folder)) {
-          this.NavigationHistoryStack.forEach((element) => {
+          this.navigationHistoryStack.forEach((element) => {
             element["isCurrent"] = false;
           });
-          this.NavigationHistoryStack[forwardIndex]["isCurrent"] = true;
+          this.navigationHistoryStack[forwardIndex]["isCurrent"] = true;
         }
       }
     },
