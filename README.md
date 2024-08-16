@@ -1,4 +1,4 @@
-# vue-explore-sample
+# vue-explorer-sample
 
 基于Vue的文件资源管理器示例
 
